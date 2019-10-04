@@ -6,3 +6,4 @@ Recomputes citatation tags in BibTex bibliography data base files. Can also sort
  * ```autoreconf --install```
  * ```./configure```
  * ```make```
+ 
