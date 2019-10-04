@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
-#include <malloc.h>
+#include <stdlib.h>
 
 #define TRUE  1
 #define FALSE 0
@@ -470,7 +470,7 @@ char ScanToken(char *p, char *ans)
   *q = toupper(*q);              /* force first char of output upper case */
 }
 
-AppendTitleToNewEntryTag(struct Entry *e)
+void AppendTitleToNewEntryTag(struct Entry *e)
 { int  i,j,k;
   int  TitleWordCount;
   char TitleWord[100][STRINGSIZE];
@@ -560,7 +560,7 @@ AppendYearToNewEntryTag(struct Entry *e)
   e->NewEntryTag = strdup(NewEntryTag);
 }
 
-AppendAuthorInfoToNewEntryTag(struct Entry *e)
+void AppendAuthorInfoToNewEntryTag(struct Entry *e)
 { int i,j,k;
   char *p;
   char Authors[STRINGSIZE];
@@ -724,7 +724,7 @@ void SetHashEntry(char *s)
   HashTable[HashTableIndex(s)] = 1;
 }
 
-AppendExtensionToMakeNewEntryTagUnique(struct Entry *e)
+void AppendExtensionToMakeNewEntryTagUnique(struct Entry *e)
 { char ctr[10];
   int i;
   int taglen;
