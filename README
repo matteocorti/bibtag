@@ -1,0 +1,304 @@
+NAME
+     bibtag - recomputes citatation tags in BibTex bibliography
+     data base files.  Can also sort and prettyprint the files.
+
+SYNOPSIS
+     bibtag bibfile1 bibfile2 bibfile3 ...
+            [-a] [-t] [-y] [-c] [-e] [-u] [-p]
+            [-n] [-i] [-s] [--]
+            [-h]
+            [-o outputfile] 
+            [-=]
+     If no input files are specified, input is read from stdin.
+     If no output file is specified, output is written to stdout.
+     Options -a, -t, -y, -c, and -i may take one or more numeric arguments,
+     separated by commas (see details below).  With no options specified,
+     bibtag acts as a pipe from stdin to stdout; the input bibtex database
+     provided on stdin is read, each entry is given a new (unique) citation
+     tag, the file is sorted into order by citation tag, and pretty-printed
+     onto stdout.   Options must be separated by spaces; they can not be 
+     combined.	The options may be specified in upper or lower case; -a 
+     and -A are equivalent.  An single option of -h (or -help) causes bibtag
+     to print a short help file.
+
+DESCRIPTION
+
+     The input file name(s), if given, must be the first argument(s) to
+     bibtag.  More than one input file may be specified; this is equivalent
+     to processing the concatentation of the specified input files.
+     If no input file name is specified, the input is read from stdin.
+
+     The ordering of the options is important: each argument is processed 
+     before the next option is considered. 
+
+     After all the options are processed, the output is written to stdout,
+     unless a different output file has been specified with an -o option.  
+     Error messages are always written to the standard output.
+
+     The first step of processing is to read all the database files and 
+     parse each bibtex entry into its constituent parts.  Each bibtex entry 
+     is parsed into
+        -- initial comments, if any (i.e. text preceding the @ sign),
+	-- an "entry type" (e.g. @article),
+	-- an "entry tag" or "citation tag" (e.g. Rivest94), and
+	-- one or more "attribute = value" pairs (e.g. "year = 1994"),
+           separated from the entry tag and each other by commas.
+     The entry itself (after the entry type) must be surrounded by
+     braces (and not parentheses).
+ 
+     After the bibtex database file is read and stored in memory, bibtex cross
+     references are resolved.  Bibtex entries that are the targets of cross
+     references are marked so that they will not have their citation tags
+     changed.
+     
+     Then each option is considered in turn and processed.  Initially, each
+     entry begins with an empty (null string) new citation tag.  Options may 
+     cause text to be appended to the new citation tag being computed.  For
+     example, the -y option causes the last two digits of the year of 
+     publication to be appended to the new citation tag, for each entry in
+     the bibtex database.
+
+     The new citation tag can be constructed using the following fields:
+          -- the authors' last names (-a)
+          -- significant words from the title (-t)
+          -- the year of the publication (-y)
+          -- literal text strings (-ltext)
+          -- check digits (-c)
+          -- a suffix to make the tag unique in the file. (-u)
+          -- a previously exisiting suffix to the tag (-e)
+          -- the previous tag (-p)
+     For example, specifying the options
+          -a -l: -y -u
+     in this order can result in tags such as
+          Rivest:90
+          Meyer:89b
+          MicaliGoWi:85c
+     The lengths of these fields are controllable by arguments to the options.
+     A more detailed description of the operation of these options is given 
+     below.
+
+     It is possible to override bibtag's computation of a new citation tag
+     for certain entries where bibtag's operation gives unsatisfactory
+     results.  If you wish to force the citation tag for a given entry to
+     a certain value, then include an attribute/value line in the entry
+     of the form:
+          newtag = {foo},
+     where "foo" is the tag you wish bibtag to give this entry whenever
+     bibtag processes this file.  (The newtag entry is preserved in the
+     output of bibtag.)
+
+     The following six options can be used to specify how bibtag should 
+     construct the new citation tag:
+
+	-a	Insert author name(s) into the tag being computed.
+		This option can take zero to three optional numeric arguments:
+		-af	-- f (a number) is an upper bound on how many 
+			   characters to use from the first author's last name.
+		-af,s	-- same, but also s (a number) is an upper bound on
+			   how many characters to use from the second (and 
+			   later) authors' last names.
+		-af,s,n -- same, but also places an upper bound n on the total
+		           number of last names to use.
+		If no arguments are given, the default settings is equivalent
+                to -a12,2,6 (at most twelve characters from the first author's
+                last name, at most two characters from each subsequence 
+                author's last name, with at most six names total.
+		An interesting variant is -a1,1 which uses just the first 
+                letter of each author's last name.
+
+                The first letter of each author's last name is capitalized, and
+                an additional letters from his last name are given in lower 
+                case.  Hyphens and prefixes (Von, Van, De, etc) are preserved,                 although the preservation of hyphens can be turned off with the
+                "--" option.
+
+	--      This option causes any hyphens in an author's name to be
+                dropped. The default is to use the hyphens, if present in 
+                authors' names.  This option should be given before the 
+                -a option.
+
+	-y	Append the last two digits of the year to the new citation tag.
+		An optional numeric argument can be given, specifying how
+		many digits of the year (starting with the low-order digits)
+		to include.  For example, -y4 appends the entire year to the 
+                tag, and -y is equivalent to -y2.
+
+	-lxxx	Append the literal string xxx to the new citation tag.
+		For example, if you wanted every tag in a given file to
+		start with "focs89:", you could specify	-lfocs89:
+		as the first option.  To have a format such as author:year,
+                give options -a -l: -y
+
+	-t	Append significant words from title to the new citation tag.
+		Small articles and prepositions (the, of, etc.) are skipped.
+		This option can take 1 to three optional numeric arguments,
+                similar in function to the arguments for the -a option:
+		-tf	-- f (a number) is an upper bound on how many 
+			   characters to use from the first word of title.
+		-tf,s	-- same, but also s (a number) is an upper bound on
+			   how many characters to use from the second (and 
+			   later) words from title.
+		-tf,s,n -- same, but also places an upper bound n on the total
+		           number of words from title to use.
+                The option -t with no argument is equivalent to -t1,1,5 
+	        which takes just the first letter from up to five title words.
+                The first letter of each title word used is capitalized, and
+                subsequent letters from each word are given in lower case.
+
+	-p	Append the previous bibtex citation tag to the new citation 
+                tag.  This can be useful if you just want to preserve the
+		existing tags: just give -p as the only citation tag
+		option.   This can also be useful if you just want to 
+		prepend a common prefix (e.g. "stoc:") to all
+		the tags in the file (use the options -lstoc: -p).
+
+     The following three options are available to help ensure that each entry
+     has a unique citation tag.
+
+	-c	Append "check digits" to the new citation tag.  An optional 
+                numeric argument can be given, specifying how many check digits
+                are desired. (The default is 1, if no argument is given.)  
+                The "check digits" are lower-case letters computed 
+                pseudo-randomly from all of the value fields in the bibtex 
+                entry, except the oldtag or newtag entries, if present.  
+                Using check digits can provide a probabilistic method of 
+                avoiding duplicate tag names.  For example, the specifiers
+			-a -y -c2
+		will add two check digits after the author and year that will
+		have a good chance of avoiding duplicate tags.
+
+	-e      This option compares the newly computed citation tag with
+                the previous bibtex citation tag.  If the new tag is a prefix
+                the existing tag, then the new citation tag is extended so
+                that it is equal to the previous citation tag.  This option 
+                can be useful to preserve tag extensions whose purpose is 
+                to avoid duplicate tags.  If the new citation tag was not
+                a prefix of the existing tag, nothing is done.
+	
+	-u	If this option is used, it should be the last one specified.
+		If present, this option causes bibtag to guarantee that the
+		computed tag will be unique in the file, by adding a small
+		extension if necessary.  (Typically the extension will be
+		an "a", "b", etc, but because of the hashing technique used
+		for this option there is no guarantee that the extensions
+		will be chosen in order, although this is likely.)
+		Note that if an entry has a "newtag" entry, then the -u
+		option will NOT apply to that entry; the newtag field
+		takes priority.
+
+     If none of the above options are specified, then bibtag assumes that
+     you meant:
+		-a12,2,5 -y2 -e -u
+     This default for bibtag includes the authors' names and year, any
+     previous extensions, and guarantees uniqueness of tags.  (Except possibly
+     for entries with newtag attributes, or for cross-reference targets, which
+     are not affected by the options specified how new tags are to be 
+     computed.) 
+     
+     You may wish to keep a record of the previous bibtex citation tag for
+     all entries that have their citation tags changed by bibtag.  This ensures
+     that you can undo the effects of bibtag, for instance.  The -s option
+     allows this:
+
+	-s	Save the old (replaced) tag, if the newly computed one is 
+		different.  The old tag is saved under the attribute "oldtag" 
+		in the output entry.
+
+     Once all the the entries have their new citation tags, bibtag sorts the
+     database file into order by these new citation tags.  More precisely, 
+     the file is put into the following order:
+	(1) Any initial text that was in the file.
+	(2) The @preamble entry, if present.
+	(3) The @string definitions, in the order they were given.
+	(4) The entries, with the cross-ref targets given last.
+     This order is always used for output.  Note that comments preceding a
+     given bibtex entry are kept with that entry.
+     The sorting of the entries within (4) can be suppressed with the -n 
+     option:
+
+        -n      Suppress the sorting of entries by their citation tags.
+
+
+     The following options affect how bibtag produces its output:
+
+	-ofn    Place output in file named fn.
+		The file name can also be given as the next argument,
+		rather than as part of the -o option itself; the
+		following are equivalent:
+			bibtag A.bib -oB.bib
+			bibtag A.bib -o B.bib
+		The default is to write to the standard output.
+
+	-b	When printing values, surround them with braces.
+	-q	When printing values, surround them with quotes.
+		The default is to leave braces/quotes as they are.
+        -=      Print a compact equals sign (not surrounded by spaces)
+                between attribute and value, rather than a space-surrounded
+                equals sign.
+
+	-inn,mm	Indent all attributes by nn spaces and start all values 
+                in column mm.   
+	        If the value takes many lines to print, the continuation
+		lines are also indented to start in column mm.
+		The second argument may be omitted.
+		The default is -i0,15
+                The option i0,0 causes everything to be left-justified as
+                much as possible.
+
+     Here are some examples of bibtag commands, together with examples of
+     the citation tags they can result in (in brackets):
+
+	bibtag A.bib -a -y -e -u 		[Rivest94a]
+	bibtag A.bib -a -l- -y -l- -t -l- -c2 	[Rivest-94-DL-xo]
+	bibtag A.bib -a1,1 -l- -y -l: -t 	[RSA-78:MODSP]
+
+     Here are two simple bibtag commands that might be useful:
+
+	bibtag A.bib -p -n		-- just pretty-prints the file
+	bibtag A.bib -p                 -- sorts and pretty-prints the file
+
+     If the newly computed tag is different than the existing tag, then
+     a message of the form:
+	Bibtag: old-tag ==> new-tag
+     is written out to stderr. (If you do not choose to write the 
+     bibtag output to a separate file, then stderr and stdout will both
+     go to your console, and the tag-change messages will all appear first
+     before the output file.)
+
+PROBLEMS
+     If you have trouble using bibtag, you can try using bibclean first
+     to clean up the file into a standard format.  Bibtag does not
+     require that the input file be in the form produced by bibclean, but
+     it is known to work well in this case.  
+
+     Send bug reports to rivest@theory.lcs.mit.edu.  I may or may
+     not fix bugs reported to me, depending on how busy I am with other
+     things.
+	
+     The source code is available.  If you fix a bug or make improvements
+     yourself, please send me a copy of the corrected/modified source code.
+
+     This software is made freely available "as is" for your use.  You
+     may modify the software in any way that you wish.  No warranty is
+     made as to the suitability of this software for any particular 
+     purpose; the user takes all risks for its use.  No copyright,
+     trademark, or patent claims are made on this software or its name.
+     Source code can be found by anonymous ftp to theory.lcs.mit.edu
+     and looking in the pub/rivest/bibtag directory.
+
+     Bibtag can handle the concatenation character # in value strings,
+     although the -b and -q options are not guaranteed to work properly
+     if the # character is present.  If you specify the -b option 
+     (braces) on a file that has values formed by concatenation, then 
+     a line of the form
+	title = "focs" # "1989"
+     for example, would be turned into
+  	title = {focs" # "1989}
+     which is improper.
+
+     Bibtag runs fine when compiled by gcc on a sparcstation.  Portability
+     to other platforms is not guaranteed...
+
+Version:	1.0
+Author:		Ronald L. Rivest (rivest@theory.lcs.mit.edu)
+Date:		June 4, 1995
+

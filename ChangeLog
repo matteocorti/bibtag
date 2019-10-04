@@ -1,0 +1,10 @@
+2004-05-05  root  <corti@inf.ethz.ch>
+
+	* main returns an int
+
+2003-02-11  Matteo Corti  <corti@inf.ethz.ch>
+
+	* GNU autoconf & automake
+	* man page
+	
+
