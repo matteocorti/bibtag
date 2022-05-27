@@ -25,7 +25,7 @@ DESCRIPTION
 
      The input file name(s), if given, must be the first argument(s) to
      bibtag.  More than one input file may be specified; this is equivalent
-     to processing the concatentation of the specified input files.
+     to processing the concatenation of the specified input files.
      If no input file name is specified, the input is read from stdin.
 
      The ordering of the options is important: each argument is processed 
@@ -65,7 +65,7 @@ DESCRIPTION
           -- literal text strings (-ltext)
           -- check digits (-c)
           -- a suffix to make the tag unique in the file. (-u)
-          -- a previously exisiting suffix to the tag (-e)
+          -- a previously existing suffix to the tag (-e)
           -- the previous tag (-p)
      For example, specifying the options
           -a -l: -y -u

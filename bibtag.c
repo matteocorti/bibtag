@@ -29,7 +29,7 @@ int  EOFSeen;                    /* True if EOF seen on this file */
 /* *** REPRESENTATION OF AN ENTRY *** */
 struct Entry 
 {
-  char *InitialComments;         /* Text occuring before the entry type */
+  char *InitialComments;         /* Text occurring before the entry type */
   char *EntryType;               /* type of Bibtex entry e.g. "@article" */
   char *StringDef;               /* definition, if a string constant */
   char *EntryTag;                /* Bibtex Tag e.g. "Rivest92" */
